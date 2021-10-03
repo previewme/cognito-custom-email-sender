@@ -30,9 +30,7 @@ export async function handler(event: CustomEmailSenderTriggerEvent) {
     const plainTextCode = await getPlainTextCode(event);
     const toEmail = (event.request.userAttributes as StringMap)['email'];
     sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
-    sendgrid.setSubstitutionWrappers('{{', '}}');
     const msg: MailDataRequired = {
-        to: toEmail,
         from: 'hello-test@previewme.co', // Change to your verified sender
         subject: 'Sending with SendGrid is Fun',
         personalizations: [
@@ -49,8 +47,8 @@ export async function handler(event: CustomEmailSenderTriggerEvent) {
         ],
         templateId: process.env.TEMPLATE_ID!
     };
-
-    await sendgrid.send(msg);
+    const response = await sendgrid.send(msg);
+    console.log('response', response);
 }
 
 exports.handler = handler;
