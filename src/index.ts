@@ -1,6 +1,6 @@
-import { CustomEmailSenderTriggerEvent } from 'aws-lambda';
 import { buildClient, CommitmentPolicy, KmsKeyringNode } from '@aws-crypto/client-node';
 import { toByteArray } from 'base64-js';
+import { CustomEmailSenderTriggerEvent } from 'aws-lambda';
 import sendgrid from '@sendgrid/mail';
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 import { StringMap } from 'aws-lambda/trigger/cognito-user-pool-trigger/_common';
@@ -14,25 +14,26 @@ async function getPlainTextCode(event: CustomEmailSenderTriggerEvent) {
         throw Error('Cannot decrypt code');
     }
 
-    const { decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
+    const client = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
     const generatorKeyId = process.env.KEY_ALIAS;
     const keyIds = [process.env.KEY_ID];
     const keyring = new KmsKeyringNode({ generatorKeyId, keyIds });
 
     let plainTextCode: string | undefined = undefined;
-    const { plaintext } = await decrypt(keyring, toByteArray(event.request.code));
-    plainTextCode = plaintext.toString();
+    const decryptOutput = await client.decrypt(keyring, toByteArray(event.request.code));
+    plainTextCode = decryptOutput.plaintext.toString();
 
     return plainTextCode;
 }
 
-export async function handler(event: CustomEmailSenderTriggerEvent) {
-    const plainTextCode = await getPlainTextCode(event);
-    const toEmail = (event.request.userAttributes as StringMap)['email'];
-    sendgrid.setApiKey(process.env.SENDGRID_API_KEY!);
-    const msg: MailDataRequired = {
-        from: 'hello-test@previewme.co', // Change to your verified sender
-        subject: 'Sending with SendGrid is Fun',
+function createMessageObject(toEmail: string, plainTextCode: string, templateId: string, subject: string, cognitoLink: string): MailDataRequired {
+    if (!process.env.FROM_EMAIL) {
+        throw Error('From email not found');
+    }
+
+    return {
+        from: process.env.FROM_EMAIL, // Change to your verified sender
+        subject: subject,
         personalizations: [
             {
                 to: [
@@ -41,14 +42,53 @@ export async function handler(event: CustomEmailSenderTriggerEvent) {
                     }
                 ],
                 dynamicTemplateData: {
-                    cognito_link: `/auth/changePassword?email=${toEmail}&accessCode=${plainTextCode}`
+                    cognito_link: cognitoLink
                 }
             }
         ],
-        templateId: process.env.TEMPLATE_ID!
+        templateId: templateId
     };
-    const response = await sendgrid.send(msg);
-    console.log('response', response);
 }
 
-exports.handler = handler;
+function generateMessageToSend(event: CustomEmailSenderTriggerEvent, plainTextCode: string, toEmail: string) {
+    let templateId = '';
+    let subject = '';
+    let cognitoLink = '';
+
+    if (!process.env.APP_BASE_URL) {
+        throw Error('Unable to create link');
+    }
+
+    if (event.triggerSource == 'CustomEmailSender_SignUp' && process.env.SIGN_UP_TEMPLATE_ID && process.env.SIGN_UP_SUBJECT) {
+        templateId = process.env.SIGN_UP_TEMPLATE_ID;
+        subject = process.env.SIGN_UP_SUBJECT;
+        cognitoLink = process.env.APP_BASE_URL + `/auth/confirmRegistration?email=${toEmail}&accessCode=${plainTextCode}`;
+    } else if (
+        event.triggerSource == 'CustomEmailSender_ForgotPassword' &&
+        process.env.FORGOT_PASSWORD_TEMPLATE_ID &&
+        process.env.FORGOT_PASSWORD_SUBJECT
+    ) {
+        templateId = process.env.FORGOT_PASSWORD_TEMPLATE_ID;
+        subject = process.env.FORGOT_PASSWORD_SUBJECT;
+        cognitoLink = process.env.APP_BASE_URL + `/auth/changePassword?email=${toEmail}&accessCode=${plainTextCode}`;
+    } else {
+        throw Error('Could not create message');
+    }
+
+    return createMessageObject(toEmail, plainTextCode, templateId, subject, cognitoLink);
+}
+
+export async function handler(event: CustomEmailSenderTriggerEvent): Promise<MailDataRequired> {
+    const plainTextCode = await getPlainTextCode(event);
+    const toEmail = (event.request.userAttributes as StringMap)['email'];
+
+    if (!process.env.SENDGRID_API_KEY) {
+        throw Error('Sendgrid API key not found');
+    }
+
+    sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+    const messageToSend: MailDataRequired = generateMessageToSend(event, plainTextCode, toEmail);
+    await sendgrid.send(messageToSend);
+
+    return messageToSend;
+}

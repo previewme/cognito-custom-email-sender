@@ -2,6 +2,24 @@
 
 A lambda which sends out custom emails for Cognito
 
+
+## Configuration
+
+### Environment variables
+
+| Environment Variable | Description | Required |
+| --- | --- | --- |
+| KEY_ID | KMS key id to decrypt email code | Yes |
+| KEY_ALIAS | Alias of the KMS key | Yes |
+| FROM_EMAIL | Email sending the emails | Yes |
+| SIGN_UP_TEMPLATE_ID | Sign up email template id | Yes |
+| SIGN_UP_SUBJECT | Sign up email template id | Yes |
+| FORGOT_PASSWORD_TEMPLATE_ID | Forgot password email template id | Yes |
+| FORGOT_PASSWORD_SUBJECT | Forgot password email subject | Yes |
+| APP_BASE_URL | Base url for the links | Yes |
+| SENDGRID_API_KEY | Api key to send email from sendgrid | Yes |
+
+
 ## Build
 
 To build the lambda function run the following.
