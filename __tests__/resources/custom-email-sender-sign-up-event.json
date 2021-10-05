@@ -24,7 +24,7 @@
             "LOGIN_TIME": "string",
             "FEEDBACK_TOKEN": "string",
             "IP_ADDRESS": "string",
-            "email": "test@example.com"
+            "email": "test@toemail.com"
         }
     },
     "response" : {}

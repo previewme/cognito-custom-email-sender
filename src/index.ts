@@ -55,40 +55,49 @@ function generateMessageToSend(event: CustomEmailSenderTriggerEvent, plainTextCo
     let subject = '';
     let cognitoLink = '';
 
+    if (!(process.env.SIGN_UP_TEMPLATE_ID && process.env.SIGN_UP_SUBJECT)) {
+        throw Error('Data to create sign up email is missing');
+    }
+
+    if (!(process.env.FORGOT_PASSWORD_TEMPLATE_ID && process.env.FORGOT_PASSWORD_SUBJECT)) {
+        throw Error('Data to create forgot password email is missing');
+    }
+
     if (!process.env.APP_BASE_URL) {
         throw Error('Unable to create link');
     }
 
-    if (event.triggerSource == 'CustomEmailSender_SignUp' && process.env.SIGN_UP_TEMPLATE_ID && process.env.SIGN_UP_SUBJECT) {
+    if (event.triggerSource == 'CustomEmailSender_SignUp') {
         templateId = process.env.SIGN_UP_TEMPLATE_ID;
         subject = process.env.SIGN_UP_SUBJECT;
         cognitoLink = process.env.APP_BASE_URL + `/auth/confirmRegistration?email=${toEmail}&accessCode=${plainTextCode}`;
-    } else if (
-        event.triggerSource == 'CustomEmailSender_ForgotPassword' &&
-        process.env.FORGOT_PASSWORD_TEMPLATE_ID &&
-        process.env.FORGOT_PASSWORD_SUBJECT
-    ) {
+    } else if (event.triggerSource == 'CustomEmailSender_ForgotPassword') {
         templateId = process.env.FORGOT_PASSWORD_TEMPLATE_ID;
         subject = process.env.FORGOT_PASSWORD_SUBJECT;
         cognitoLink = process.env.APP_BASE_URL + `/auth/changePassword?email=${toEmail}&accessCode=${plainTextCode}`;
     } else {
-        throw Error('Could not create message');
+        console.info(`Unhandled event type: ${event.triggerSource}`);
+        return;
     }
 
     return createMessageObject(toEmail, plainTextCode, templateId, subject, cognitoLink);
 }
 
-export async function handler(event: CustomEmailSenderTriggerEvent): Promise<MailDataRequired> {
-    const plainTextCode = await getPlainTextCode(event);
-    const toEmail = (event.request.userAttributes as StringMap)['email'];
-
+export async function handler(event: CustomEmailSenderTriggerEvent): Promise<void> {
     if (!process.env.SENDGRID_API_KEY) {
         throw Error('Sendgrid API key not found');
     }
 
     sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
-    const messageToSend: MailDataRequired = generateMessageToSend(event, plainTextCode, toEmail);
-    await sendgrid.send(messageToSend);
 
-    return messageToSend;
+    const plainTextCode = await getPlainTextCode(event);
+    const toEmail = (event.request.userAttributes as StringMap)['email'];
+    const messageToSend: MailDataRequired | undefined = generateMessageToSend(event, plainTextCode, toEmail);
+
+    if (messageToSend) {
+        const response = await sendgrid.send(messageToSend);
+        console.info('Response code', response[0].statusCode);
+        console.info('Response body', response[0].body);
+        console.info('x-message-id', response[0].headers['x-message-id']);
+    }
 }
