@@ -96,8 +96,6 @@ export async function handler(event: CustomEmailSenderTriggerEvent): Promise<voi
 
     if (messageToSend) {
         const response = await sendgrid.send(messageToSend);
-        console.info('Response code', response[0].statusCode);
-        console.info('Response body', response[0].body);
-        console.info('x-message-id', response[0].headers['x-message-id']);
+        console.info(`Response Code: ${response[0].statusCode}, Message-ID: ${response[0].headers['x-message-id']}, Body: ${response[0].body}}`);
     }
 }
