@@ -67,13 +67,15 @@ function generateMessageToSend(event: CustomEmailSenderTriggerEvent, plainTextCo
         throw Error('Unable to create link');
     }
 
+    const maskedEmail = toEmail.replace(/^(.)(.*)(.@.*)$/, (_, a, b, c) => a + b.replace(/./g, '*') + c);
+
     if (event.triggerSource == 'CustomEmailSender_SignUp') {
-        console.info(`Sending sign up email to ${toEmail}`);
+        console.info(`Sending sign up email to ${maskedEmail}`);
         templateId = process.env.SIGN_UP_TEMPLATE_ID;
         subject = process.env.SIGN_UP_SUBJECT;
         cognitoLink = process.env.APP_BASE_URL + `/auth/confirmRegistration?email=${toEmail}&accessCode=${plainTextCode}`;
     } else if (event.triggerSource == 'CustomEmailSender_ForgotPassword') {
-        console.info(`Sending forgotten password email to ${toEmail}`);
+        console.info(`Sending forgotten password email to ${maskedEmail}`);
         templateId = process.env.FORGOT_PASSWORD_TEMPLATE_ID;
         subject = process.env.FORGOT_PASSWORD_SUBJECT;
         cognitoLink = process.env.APP_BASE_URL + `/auth/changePassword?email=${toEmail}&accessCode=${plainTextCode}`;
