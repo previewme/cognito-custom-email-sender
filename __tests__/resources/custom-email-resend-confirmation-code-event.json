@@ -1,0 +1,31 @@
+{
+    "version": "string",
+    "triggerSource": "CustomEmailSender_ResendCode",
+    "region": "string",
+    "userPoolId": "string",
+    "userName": "string",
+    "callerContext": {
+        "awsSdkVersion": "string",
+        "clientId": "string"
+    },
+    "request": {
+        "type": "string",
+        "code": "dGVzdA==",
+        "clientMetadata": {},
+        "userAttributes": {
+            "EVENT_ID": "string",
+            "CITY": "string",
+            "USER_NAME": "string",
+            "ACCOUNT_TAKE_OVER_ACTION": "string",
+            "COUNTRY": "string",
+            "DEVICE_NAME": "string",
+            "ONE_CLICK_LINK_VALID": "string",
+            "ONE_CLICK_LINK_INVALID": "string",
+            "LOGIN_TIME": "string",
+            "FEEDBACK_TOKEN": "string",
+            "IP_ADDRESS": "string",
+            "email": "test@toemail.com"
+        }
+    },
+    "response" : {}
+}

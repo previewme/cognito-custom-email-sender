@@ -79,6 +79,11 @@ function generateMessageToSend(event: CustomEmailSenderTriggerEvent, plainTextCo
         templateId = process.env.FORGOT_PASSWORD_TEMPLATE_ID;
         subject = process.env.FORGOT_PASSWORD_SUBJECT;
         cognitoLink = process.env.APP_BASE_URL + `/auth/changePassword?email=${toEmail}&accessCode=${plainTextCode}`;
+    } else if (event.triggerSource == 'CustomEmailSender_ResendCode') {
+        console.info(`Resending confirmation code to ${maskedEmail}`);
+        templateId = process.env.SIGN_UP_TEMPLATE_ID;
+        subject = process.env.SIGN_UP_SUBJECT;
+        cognitoLink = process.env.APP_BASE_URL + `/auth/confirmRegistration?email=${toEmail}&accessCode=${plainTextCode}`;
     } else {
         console.info(`Unhandled event type: ${event.triggerSource}`);
         return;

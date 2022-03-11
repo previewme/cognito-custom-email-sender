@@ -1,11 +1,13 @@
 import { CustomEmailSenderTriggerEvent } from 'aws-lambda';
 import { default as customEmailSenderSignUpTriggerEvent } from './resources/custom-email-sender-sign-up-event.json';
 import { default as customEmailSenderForgotPasswordTriggerEvent } from './resources/custom-email-sender-forgot-password-event.json';
+import { default as customEmailResendConfirmationTriggerEvent } from './resources/custom-email-resend-confirmation-code-event.json';
 import { handler } from '../src';
 import sendgrid from '@sendgrid/mail';
 
 const signUpEvent: CustomEmailSenderTriggerEvent = customEmailSenderSignUpTriggerEvent as CustomEmailSenderTriggerEvent;
 const forgotPasswordEvent: CustomEmailSenderTriggerEvent = customEmailSenderForgotPasswordTriggerEvent as CustomEmailSenderTriggerEvent;
+const resendConfirmationCode: CustomEmailSenderTriggerEvent = customEmailResendConfirmationTriggerEvent as CustomEmailSenderTriggerEvent;
 
 jest.mock('@sendgrid/mail', () => {
     return {
@@ -115,9 +117,30 @@ describe('Test custom email sender', () => {
     });
 
     test('Test unsupported trigger source', async () => {
-        signUpEvent.triggerSource = 'CustomEmailSender_ResendCode';
+        signUpEvent.triggerSource = 'CustomEmailSender_AdminCreateUser';
         await handler(signUpEvent);
         expect(sendgrid.send).toHaveBeenCalledTimes(0);
+    });
+
+    test('Test resend confirmation code', async () => {
+        await handler(resendConfirmationCode);
+        expect(sendgrid.send).toHaveBeenCalledWith({
+            from: 'test@fromemail.com', // Change to your verified sender
+            subject: 'sign-up-subject',
+            personalizations: [
+                {
+                    to: [
+                        {
+                            email: 'test@toemail.com'
+                        }
+                    ],
+                    dynamicTemplateData: {
+                        cognito_link: 'https://test.com/auth/confirmRegistration?email=test@toemail.com&accessCode=test-code'
+                    }
+                }
+            ],
+            templateId: 'sign-up-template-id'
+        });
     });
 
     test('Test non existent forget password template id and subject', async () => {
