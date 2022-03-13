@@ -44,3 +44,5 @@ The following will package the lambda function into a zip bundle to allow manual
 ```
 zip -q -r dist/lambda.zip node_modules dist
 ```
+
+### Further changes to be made?
