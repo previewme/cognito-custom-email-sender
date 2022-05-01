@@ -13,7 +13,7 @@ A lambda which sends out custom emails for Cognito
 | KEY_ALIAS | Alias of the KMS key | Yes |
 | FROM_EMAIL | Email sending the emails | Yes |
 | SIGN_UP_TEMPLATE_ID | Sign up email template id | Yes |
-| SIGN_UP_SUBJECT | Sign up email template id | Yes |
+| SIGN_UP_SUBJECT | Sign up email subject | Yes |
 | FORGOT_PASSWORD_TEMPLATE_ID | Forgot password email template id | Yes |
 | FORGOT_PASSWORD_SUBJECT | Forgot password email subject | Yes |
 | APP_BASE_URL | Base url for the links | Yes |
