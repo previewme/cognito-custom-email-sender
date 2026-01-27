@@ -69,7 +69,7 @@ function generateMessageToSend(event: CustomEmailSenderTriggerEvent, plainTextCo
 
     const maskedEmail = toEmail.replace(/^(.)(.*)(.@.*)$/, (_, a, b, c) => a + b.replace(/./g, '*') + c);
 
-    console.log("APP_BASE_URL: ", process.env.APP_BASE_URL)
+    console.info(`APP_BASE_URL:  ${process.env.APP_BASE_URL}`);
 
     if (event.triggerSource == 'CustomEmailSender_SignUp') {
         console.info(`Sending sign up email to ${maskedEmail}`);
