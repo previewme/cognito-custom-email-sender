@@ -94,6 +94,12 @@ function generateMessageToSend(event: CustomEmailSenderTriggerEvent, plainTextCo
     return createMessageObject(toEmail, plainTextCode, templateId, subject, cognitoLink);
 }
 
+/**
+ * Cognito Custom Email Sender Lambda handler.
+ * Sends Cognito-generated emails using SendGrid.
+ *
+ * @param event - Cognito custom email trigger event.
+ */
 export async function handler(event: CustomEmailSenderTriggerEvent): Promise<void> {
     if (!process.env.SENDGRID_API_KEY) {
         throw Error('Sendgrid API key not found');
