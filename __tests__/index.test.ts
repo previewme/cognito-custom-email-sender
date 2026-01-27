@@ -87,7 +87,7 @@ describe('Test custom email sender', () => {
                         }
                     ],
                     dynamicTemplateData: {
-                        cognito_link: 'https://test.com/auth/confirmRegistration?email=test@toemail.com&accessCode=test-code'
+                        cognito_link: 'https://test.com/confirmRegistration?email=test@toemail.com&accessCode=test-code'
                     }
                 }
             ],
@@ -108,7 +108,7 @@ describe('Test custom email sender', () => {
                         }
                     ],
                     dynamicTemplateData: {
-                        cognito_link: 'https://test.com/auth/changePassword?email=test@toemail.com&accessCode=test-code'
+                        cognito_link: 'https://test.com/changePassword?email=test@toemail.com&accessCode=test-code'
                     }
                 }
             ],
@@ -135,7 +135,7 @@ describe('Test custom email sender', () => {
                         }
                     ],
                     dynamicTemplateData: {
-                        cognito_link: 'https://test.com/auth/confirmRegistration?email=test@toemail.com&accessCode=test-code'
+                        cognito_link: 'https://test.com/confirmRegistration?email=test@toemail.com&accessCode=test-code'
                     }
                 }
             ],
