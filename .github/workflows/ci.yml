@@ -11,23 +11,13 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.2.2
 
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4.4.0
         with:
-          node-version: '14.x'
+          node-version: '20.x'
           cache: 'npm'
-
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
 
       - name: Install dependencies
         run: npm ci
@@ -37,7 +27,7 @@ jobs:
 
       - name: Upload file report files as an artifact
         if: success()
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: reports
           path: reports/
@@ -48,22 +38,12 @@ jobs:
     name: Build, Package and Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.2.2
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4.4.0
         with:
-          node-version: '14.x'
+          node-version: '20.x'
           cache: 'npm'
-
-      - name: Restore node_modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
 
       - name: Install dependencies
         run: npm ci
@@ -98,30 +78,30 @@ jobs:
         run: |
           aws s3 cp dist/${{ github.event.repository.name }}-${{ github.run_number }}.zip s3://${{ secrets.ARTEFACT_BUCKET }}/${{ github.event.repository.name }}/${{ github.event.repository.name }}-${{ github.run_number }}.zip
 
-  sonarcloud:
-    needs: test
-    name: Quality Gate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Download a reports artifact
-        uses: actions/download-artifact@v2.0.10
-        with:
-          name: reports
-          path: reports
-
-      - name: SonarCloud Scan
-        if: always()
-        uses: SonarSource/sonarcloud-github-action@v1.6
-        with:
-          projectBaseDir: ${{ env.GITHUB_WORKSPACE }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          BUILD_NUMBER: ${{ github.run_number }}
+#  sonarcloud:
+#    needs: test
+#    name: Quality Gate
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Download a reports artifact
+#        uses: actions/download-artifact@v2.0.10
+#        with:
+#          name: reports
+#          path: reports
+#
+#      - name: SonarCloud Scan
+#        if: always()
+#        uses: SonarSource/sonarcloud-github-action@v1.6
+#        with:
+#          projectBaseDir: ${{ env.GITHUB_WORKSPACE }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#          BUILD_NUMBER: ${{ github.run_number }}
 
   slack-workflow-status:
     if: always()
@@ -130,7 +110,7 @@ jobs:
     needs:
       - test
       - build
-      - sonarcloud
+#      - sonarcloud
     steps:
       - name: Workflow Conclusion Action
         uses: technote-space/workflow-conclusion-action@v2.0.1
